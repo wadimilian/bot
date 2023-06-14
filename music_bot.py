@@ -6,7 +6,7 @@ def start(update, context):
 
 def main():
     # Створення екземпляру Updater з токеном вашого бота
-    updater = Updater(token='YOUR_BOT_TOKEN', use_context=True)
+    updater = Updater(token='5898259885:AAGXE1goXG-4uD_XU9w3JyzhI2d9aVZNuUs', use_context=True)
     dispatcher = updater.dispatcher
 
     # Реєстрація обробника команди /start
