@@ -22,7 +22,8 @@ def get_channel_id(chat_id):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Привіт, я бот для конвертування відео з YouTube в аудіофайли! /n Введіть "/register" для реєстрації вашого каналу ")
+    bot.reply_to(message, "Привіт, я бот для конвертування відео з YouTube в аудіофайли! /n 
+                 Введіть "/register" для реєстрації вашого каналу ")
 
 @bot.message_handler(commands=['register'])
 def register_channel(message):
