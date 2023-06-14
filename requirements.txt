@@ -1,1 +1,3 @@
 python-telegram-bot
+telebot==0.0.6
+pytube
