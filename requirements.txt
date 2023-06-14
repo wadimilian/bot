@@ -1,5 +1,3 @@
 python-telegram-bot
 telebot
 pytube
-telebot.types
-telebot.apihelper
