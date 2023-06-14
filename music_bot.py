@@ -99,8 +99,6 @@ def get_channel_id(chat_id):
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     bot.reply_to(message, "Привіт, я бот для конвертування відео з YouTube в аудіофайли!")
-Youtube
-Enjoy the videos and music you love, upload original content, and share it all with friends, family, and the world on YouTube.
 
 @bot.message_handler(commands=['register'])
 def register_channel(message):
