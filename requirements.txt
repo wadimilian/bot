@@ -1,5 +1,5 @@
 python-telegram-bot
-telebot==0.0.6
+telebot
 pytube
 os
 telebot.types
