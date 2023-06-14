@@ -74,4 +74,4 @@ def convert_and_send(message):
         bot.reply_to(message, "Будь ласка, надішліть посилання на YouTube.")
 
 
-bot.polling()import os
+bot.polling()
