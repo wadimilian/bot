@@ -1,6 +1,6 @@
 import os
 import telebot
-from pytube import YouTube
+import youtube_dl
 from telebot.types import ChatMember
 from telebot.apihelper import ApiTelegramException
 
@@ -65,14 +65,24 @@ def convert_and_send(message):
         # Створити посилання на відео
         youtube_link = f'https://www.youtube.com/watch?v={video_id}'
 
-        # Створити об'єкт YouTube з посиланням
-        yt = YouTube(youtube_link)
+        # Створити об'єкт YouTubeDL з опціями для завантаження аудіофайлу у форматі mp3
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': 'audio.mp3',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+        }
+        ydl = youtube_dl.YoutubeDL(ydl_opts)
 
-        # Отримати перший аудіопотік з відео
-        audio_stream = yt.streams.filter(only_audio=True).first()
-
-        # Завантажити аудіопотік як файл mp4
-        audio_stream.download(filename='audio.mp4')
+        try:
+            # Завантажити аудіофайл з YouTube
+            ydl.download([youtube_link])
+        except Exception as e:
+            bot.reply_to(message, f"Помилка при завантаженні аудіофайлу: {e}")
+            return
 
         chat_id = message.chat.id
         channel_id = get_channel_id(chat_id)
@@ -82,7 +92,7 @@ def convert_and_send(message):
                 chat_member = bot.get_chat_member(channel_id, bot.get_me().id)
                 if chat_member and chat_member.status == 'administrator':
                     # Відправити аудіофайл на канал
-                    bot.send_audio(channel_id, open('audio.mp4', 'rb'), title=yt.title)
+                    bot.send_audio(channel_id, open('audio.mp3', 'rb'), title=ydl.extract_info(youtube_link, download=False)['title'])
                     bot.reply_to(message, "Аудіофайл успішно відправлено на ваш канал!")
                 else:
                     bot.reply_to(message, "Бот повинен бути адміністратором каналу для відправки файлів.")
@@ -90,15 +100,15 @@ def convert_and_send(message):
                 bot.reply_to(message, f"Помилка при отриманні інформації про канал: {e}")
         else:
             # Відправити аудіофайл користувачеві
-            bot.send_audio(chat_id, open('audio.mp4', 'rb'), title=yt.title)
+            bot.send_audio(chat_id, open('audio.mp3', 'rb'), title=ydl.extract_info(youtube_link, download=False)['title'])
             bot.reply_to(message, "Аудіофайл успішно конвертовано і відправлено вам!")
         
         # Видалити аудіофайл з локального сховища
-        os.remove('audio.mp4')
+        if os.path.exists('audio.mp3'):
+            os.remove('audio.mp3')
     else:
         # Відправити повідомлення про помилку
         bot.reply_to(message, "Будь ласка, надішліть посилання на YouTube.")
 
 
 bot.polling()
-
