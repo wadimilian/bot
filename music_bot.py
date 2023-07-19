@@ -1,7 +1,7 @@
 import os
 import telebot
 from pytube import YouTube
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import ChatMember
 from telebot.apihelper import ApiTelegramException
 
 bot = telebot.TeleBot('5898259885:AAGXE1goXG-4uD_XU9w3JyzhI2d9aVZNuUs')
@@ -26,15 +26,7 @@ def delete_channel_id(chat_id):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    chat_id = message.chat.id
-    bot.reply_to(message, "Привіт, я бот для конвертування відео з YouTube в аудіофайли! Для початку Вам потрібно добавити мене в свій телеграм канал у якості адміністратора та дати мені всі можливі дозволи, щоб я міг відразу розміщувати музику =)  Нажміть '/register' для реєстрації вашого каналу через '@ідентифікатор', якщо бажаєте відписати канал нажміть '/unregister' ")
-
-    # Отримати ідентифікатор каналу
-    channel_id = get_channel_id(chat_id)
-    if channel_id:
-        # Відправити кнопки підписки і відміни підписки разом з повідомленням
-        keyboard = create_buttons(channel_id)
-        bot.send_message(chat_id, "Ви можете підписатися на канал, натиснувши кнопку нижче:", reply_markup=keyboard)
+    bot.reply_to(message, "Привіт, я бот для конвертування відео з YouTube в аудіофайли! Для початку Вам потрібно добавити мене в свій телеграм канал у якості адміністратора та дати мені всі можливі дозволи, щоб я міг відразу розміщувати музику =)  Нажміть '/register' для реєстрації вашого каналу через '@ідентифікатор', якщо бажаєте відписати канал нажміть '/unregister'.")
 
 @bot.message_handler(commands=['register'])
 def register_channel(message):
@@ -64,11 +56,21 @@ def unregister_channel(message):
 @bot.message_handler(func=lambda msg: True)
 def convert_and_send(message):
     # Перевірити, чи є повідомлення посиланням на YouTube
-    if message.text.startswith('https://www.youtube.com/'):
+    if message.text.startswith('https://www.youtube.com/') or message.text.startswith('https://youtu.be/'):
+        # Отримати ідентифікатор відео з посилання
+        video_id = message.text.split('/')[-1]
+        if 'youtu.be' in video_id:
+            video_id = video_id.split('/')[-1]
+
+        # Створити посилання на відео
+        youtube_link = f'https://www.youtube.com/watch?v={video_id}'
+
         # Створити об'єкт YouTube з посиланням
-        yt = YouTube(message.text)
+        yt = YouTube(youtube_link)
+
         # Отримати перший аудіопотік з відео
         audio_stream = yt.streams.filter(only_audio=True).first()
+
         # Завантажити аудіопотік як файл mp4
         audio_stream.download(filename='audio.mp4')
 
@@ -97,31 +99,6 @@ def convert_and_send(message):
         # Відправити повідомлення про помилку
         bot.reply_to(message, "Будь ласка, надішліть посилання на YouTube.")
 
-@bot.callback_query_handler(func=lambda call: True)
-def handle_callback(call):
-    data = call.data
-    chat_id = call.message.chat.id
-    channel_id = get_channel_id(chat_id)
-
-    if data == 'subscribe':
-        if not channel_id:
-            bot.send_message(chat_id, "Будь ласка, введіть ідентифікатор вашого каналу:")
-            bot.register_next_step_handler(call.message, save_channel)
-        else:
-            bot.send_message(chat_id, "Ви вже підписані на канал!")
-    elif data == 'unsubscribe':
-        if channel_id:
-            delete_channel_id(chat_id)
-            bot.send_message(chat_id, "Ви успішно відписалися від каналу.")
-        else:
-            bot.send_message(chat_id, "Ви не маєте зареєстрованого каналу.")
-
-def create_buttons(channel_id):
-    keyboard = InlineKeyboardMarkup()
-    subscribe_button = InlineKeyboardButton(text='Підписатися', callback_data='subscribe')
-    unsubscribe_button = InlineKeyboardButton(text='Відписатися', callback_data='unsubscribe')
-    keyboard.row(subscribe_button, unsubscribe_button)
-    return keyboard
 
 bot.polling()
 
